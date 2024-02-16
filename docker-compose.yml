@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  influxdb:
+    image: influxdb:2.1.1
+    container_name: influxdb-tms
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2:rw
+    env_file:
+      - .env
+    entrypoint: ["./entrypoint.sh"]
+    restart: on-failure:10
+    ports:
+      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+    networks:
+      - tms-network
+
+  grafana:
+    image: grafana/grafana-oss:8.4.3
+    container_name: grafana-tms
+    volumes:
+      - grafana-storage:/var/lib/grafana:rw
+    depends_on:
+      - influxdb
+    ports:
+      - ${GRAFANA_PORT}:3000
+    networks:
+      - tms-network
+
+
+  node-red:
+    image: nodered/node-red
+    container_name: node-red-tms
+    ports:
+      - "1880:1880"
+    volumes:
+      - "node-red-data:/data"
+    networks:
+      - tms-network
+  
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto-tms
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - "mosquitto-data:/mosquitto"
+    networks:
+      - tms-network
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer-tms
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    ports:
+      - 9000:9000
+    networks:
+      - tms-network
+
+
+volumes:
+  grafana-storage:
+  influxdb-storage:
+  node-red-data:
+  mosquitto-data:
+  portainer-data:
+
+networks:
+    tms-network:
+      driver: bridge
+      name: temperature-monitor-system-v1
