@@ -11,7 +11,6 @@ git clone https://github.com/softwdevel/Temperature-monitoring-system.git
 
 Change the environment variables define in `.env` that are used to setup and deploy the stack
 ```bash
-├── telegraf/
 ├── .env         <---
 ├── docker-compose.yml
 ├── entrypoint.sh
